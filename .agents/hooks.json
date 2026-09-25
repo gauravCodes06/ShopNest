@@ -1,0 +1,20 @@
+{
+  "capture-prompt": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "powershell -ExecutionPolicy Bypass -File .agents/scripts/capture-turn.ps1 -EventType prompt",
+        "timeout": 15
+      }
+    ]
+  },
+  "capture-response": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "powershell -ExecutionPolicy Bypass -File .agents/scripts/capture-turn.ps1 -EventType response",
+        "timeout": 15
+      }
+    ]
+  }
+}
