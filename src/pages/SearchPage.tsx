@@ -1,132 +1,178 @@
 import { useSearchParams } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { searchProducts, categories } from '../data/products';
-import { ProductGrid } from '../components/products/ProductGrid';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { ProductCard } from '../components/products/ProductCard';
+import { PrimeBadge } from '../components/ui/AmazonLogo';
+import { Star } from 'lucide-react';
 
-type SortKey = 'relevance' | 'price-asc' | 'price-desc' | 'rating';
+type SortKey = 'featured' | 'price-asc' | 'price-desc' | 'rating';
 
 export function SearchPage() {
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const query = params.get('q') || '';
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [maxPrice, setMaxPrice] = useState(2000);
+  const initialCategory = params.get('category') || '';
+
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [sort, setSort] = useState<SortKey>('featured');
   const [minRating, setMinRating] = useState(0);
-  const [sort, setSort] = useState<SortKey>('relevance');
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [primeOnly, setPrimeOnly] = useState(false);
 
   const results = useMemo(() => {
     let items = searchProducts(query, selectedCategory || undefined);
     if (minRating > 0) items = items.filter((p) => p.rating >= minRating);
-    if (maxPrice < 2000) items = items.filter((p) => p.price <= maxPrice);
     switch (sort) {
-      case 'price-asc': return [...items].sort((a, b) => a.price - b.price);
-      case 'price-desc': return [...items].sort((a, b) => b.price - a.price);
-      case 'rating': return [...items].sort((a, b) => b.rating - a.rating);
-      default: return items;
+      case 'price-asc':
+        return [...items].sort((a, b) => a.price - b.price);
+      case 'price-desc':
+        return [...items].sort((a, b) => b.price - a.price);
+      case 'rating':
+        return [...items].sort((a, b) => b.rating - a.rating);
+      default:
+        return items;
     }
-  }, [query, selectedCategory, maxPrice, minRating, sort]);
-
-  const clearFilters = () => {
-    setSelectedCategory('');
-    setMaxPrice(2000);
-    setMinRating(0);
-    setSort('relevance');
-  };
+  }, [query, selectedCategory, minRating, sort]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold text-slate-100">
-            {query ? `Results for "${query}"` : 'All Products'}
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">{results.length} products found</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
-            className="bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-teal-500"
-          >
-            <option value="relevance">Sort: Relevance</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="rating">Highest Rated</option>
-          </select>
-          <button
-            onClick={() => setFiltersOpen(!filtersOpen)}
-            className="flex items-center gap-2 bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 hover:border-teal-500 transition-colors"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filters
-          </button>
+    <div className="bg-[#eaeded] min-h-screen pb-12">
+      {/* ── Search Results Bar ───────────────────────────────────────────── */}
+      <div className="bg-white border-b border-[#d5d9d9] shadow-sm py-2.5 px-4 mb-4">
+        <div className="max-w-[1500px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="text-[#565959]">
+            <span>1-{results.length} of {results.length} results for </span>
+            <span className="font-bold text-[#c7511f]">"{query || 'All Products'}"</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label htmlFor="search-sort" className="text-[#565959]">Sort by:</label>
+            <select
+              id="search-sort"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="bg-[#f0f2f2] hover:bg-[#e3e6e6] border border-[#d5d9d9] rounded-[8px] px-2.5 py-1 text-xs text-[#0f1111] shadow-inner outline-none cursor-pointer font-medium"
+            >
+              <option value="featured">Featured</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="rating">Avg. Customer Review</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <div className="flex gap-6">
-        {/* Sidebar filters */}
-        <aside className={`${filtersOpen ? 'block' : 'hidden'} lg:block w-56 shrink-0`}>
-          <div className="card p-4 sticky top-24 space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-slate-200 text-sm">Filters</h3>
-              <button onClick={clearFilters} className="text-xs text-teal-400 hover:text-teal-300 flex items-center gap-1">
-                <X className="w-3 h-3" /> Clear
-              </button>
+      {/* ── Main Layout: Filters + Results ───────────────────────────────── */}
+      <div className="max-w-[1500px] mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Filters */}
+          <aside className="lg:col-span-3 bg-white p-4 rounded-[4px] border border-[#e7e7e7] shadow-sm text-xs space-y-5">
+            {/* Prime */}
+            <div>
+              <h3 className="font-bold text-sm text-[#0f1111] mb-2">Amazon Prime</h3>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={primeOnly}
+                  onChange={(e) => setPrimeOnly(e.target.checked)}
+                  className="rounded text-[#e77600] focus:ring-[#e77600]"
+                />
+                <PrimeBadge />
+              </label>
             </div>
 
-            {/* Category */}
+            {/* Delivery Day */}
             <div>
-              <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">Category</h4>
+              <h3 className="font-bold text-sm text-[#0f1111] mb-2">Delivery Day</h3>
+              <label className="flex items-center gap-2 text-[#0f1111] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={primeOnly}
+                  onChange={(e) => setPrimeOnly(e.target.checked)}
+                  className="rounded text-[#e77600] focus:ring-[#e77600]"
+                />
+                <span>Get It by Tomorrow</span>
+              </label>
+            </div>
+
+            {/* Department */}
+            <div>
+              <h3 className="font-bold text-sm text-[#0f1111] mb-2">Department</h3>
+              <ul className="space-y-1.5 text-[#007185]">
+                <li
+                  onClick={() => setSelectedCategory('')}
+                  className={`hover:text-[#c7511f] hover:underline cursor-pointer ${
+                    !selectedCategory ? 'font-bold text-[#0f1111]' : ''
+                  }`}
+                >
+                  All Categories
+                </li>
+                {categories.map((c) => (
+                  <li
+                    key={c}
+                    onClick={() => setSelectedCategory(c)}
+                    className={`hover:text-[#c7511f] hover:underline cursor-pointer ${
+                      selectedCategory === c ? 'font-bold text-[#0f1111]' : ''
+                    }`}
+                  >
+                    {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Customer Review */}
+            <div>
+              <h3 className="font-bold text-sm text-[#0f1111] mb-2">Avg. Customer Review</h3>
               <div className="space-y-1">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="cat" checked={!selectedCategory} onChange={() => setSelectedCategory('')}
-                    className="accent-teal-500" />
-                  <span className="text-sm text-slate-300">All</span>
-                </label>
-                {categories.map((cat) => (
-                  <label key={cat} className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="cat" checked={selectedCategory === cat} onChange={() => setSelectedCategory(cat)}
-                      className="accent-teal-500" />
-                    <span className="text-sm text-slate-300">{cat}</span>
-                  </label>
+                {[4, 3, 2, 1].map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setMinRating(minRating === r ? 0 : r)}
+                    className={`flex items-center gap-1.5 hover:text-[#c7511f] cursor-pointer w-full text-left py-0.5 ${
+                      minRating === r ? 'font-bold text-[#c7511f]' : 'text-[#0f1111]'
+                    }`}
+                  >
+                    <div className="flex text-[#de7921]">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={`w-3.5 h-3.5 ${s <= r ? 'fill-[#de7921]' : 'text-gray-300'}`}
+                        />
+                      ))}
+                    </div>
+                    <span>& Up</span>
+                  </button>
                 ))}
               </div>
             </div>
 
-            {/* Price */}
+            {/* Pay on Delivery */}
             <div>
-              <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">Max Price</h4>
-              <input
-                type="range" min={10} max={2000} step={10} value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full accent-teal-500"
-              />
-              <div className="flex justify-between text-xs text-slate-500 mt-1">
-                <span>$0</span><span>${maxPrice === 2000 ? 'Any' : `$${maxPrice}`}</span>
-              </div>
+              <h3 className="font-bold text-sm text-[#0f1111] mb-2">Payment</h3>
+              <label className="flex items-center gap-2 text-[#0f1111] cursor-pointer">
+                <input type="checkbox" className="rounded text-[#e77600] focus:ring-[#e77600]" />
+                <span>Eligible for Pay On Delivery</span>
+              </label>
             </div>
+          </aside>
 
-            {/* Rating */}
-            <div>
-              <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2">Min Rating</h4>
-              <div className="space-y-1">
-                {[0, 4, 4.5].map((r) => (
-                  <label key={r} className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="rating" checked={minRating === r} onChange={() => setMinRating(r)}
-                      className="accent-teal-500" />
-                    <span className="text-sm text-slate-300">{r === 0 ? 'Any' : `${r}★ & up`}</span>
-                  </label>
+          {/* Results Grid */}
+          <main className="lg:col-span-9">
+            {results.length === 0 ? (
+              <div className="bg-white p-12 rounded-[4px] border border-[#e7e7e7] text-center">
+                <p className="text-base font-bold text-[#0f1111] mb-2">
+                  No results for "{query}"
+                </p>
+                <p className="text-xs text-[#565959] mb-4">
+                  Try checking your spelling or use more general terms
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {results.map((p) => (
+                  <ProductCard key={p.id} product={p} />
                 ))}
               </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* Results */}
-        <div className="flex-1 min-w-0">
-          <ProductGrid products={results} cols={3} />
+            )}
+          </main>
         </div>
       </div>
     </div>

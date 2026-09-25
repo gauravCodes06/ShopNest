@@ -2,22 +2,22 @@ import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductById, getProductsByCategory } from '../data/products';
 import { useCartStore } from '../context/CartContext';
-import { useWishlistStore } from '../context/WishlistContext';
+import { useWishlistStore } from '../../src/context/WishlistContext';
 import { formatPrice } from '../lib/utils';
 import { StarRating } from '../components/ui/StarRating';
-import { QuantitySelector } from '../components/ui/QuantitySelector';
-import { ProductImage } from '../components/ui/ProductImage';
+import { PrimeBadge } from '../components/ui/AmazonLogo';
 import { ProductCard } from '../components/products/ProductCard';
 import {
   Heart,
-  ShoppingCart,
-  Zap,
   Truck,
   ShieldCheck,
   RotateCcw,
   Check,
   ChevronRight,
-  ArrowLeft,
+  MapPin,
+  Lock,
+  Tag,
+  CreditCard,
 } from 'lucide-react';
 
 export function ProductDetailPage() {
@@ -34,13 +34,13 @@ export function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold text-slate-100 mb-4">Product Not Found</h2>
-        <p className="text-slate-400 mb-8">
-          The product you are looking for does not exist or has been removed.
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center bg-white my-8 rounded-[4px] border border-gray-200">
+        <h2 className="text-2xl font-bold text-[#0f1111] mb-2">Looking for something?</h2>
+        <p className="text-sm text-[#565959] mb-6">
+          We're sorry. The Web address you entered is not a functioning page on our site.
         </p>
-        <Link to="/" className="btn-primary inline-flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back to Home
+        <Link to="/" className="btn-amazon-primary inline-flex px-6 py-2">
+          Go to Amazon.in's Home Page
         </Link>
       </div>
     );
@@ -52,7 +52,7 @@ export function ProductDetailPage() {
 
   const discount = product.originalPrice
     ? Math.round((1 - product.price / product.originalPrice) * 100)
-    : null;
+    : 25;
 
   const relatedProducts = getProductsByCategory(product.category)
     .filter((p) => p.id !== product.id)
@@ -70,201 +70,276 @@ export function ProductDetailPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs text-slate-400 mb-6 overflow-x-auto pb-2">
-        <Link to="/" className="hover:text-teal-400 transition-colors">
-          Home
-        </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-        <Link
-          to={`/category/${encodeURIComponent(product.category)}`}
-          className="hover:text-teal-400 transition-colors"
-        >
-          {product.category}
-        </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-        <span className="text-slate-200 truncate max-w-xs">{product.name}</span>
-      </nav>
+    <div className="bg-white min-h-screen py-4 border-b border-[#e7e7e7]">
+      <div className="max-w-[1500px] mx-auto px-4">
+        {/* Breadcrumb Navigation */}
+        <nav className="flex items-center gap-1.5 text-xs text-[#565959] mb-4 overflow-x-auto pb-1">
+          <Link to="/" className="hover:text-[#c7511f] hover:underline">
+            Home
+          </Link>
+          <ChevronRight className="w-3 h-3 text-gray-400 shrink-0" />
+          <Link
+            to={`/category/${encodeURIComponent(product.category)}`}
+            className="hover:text-[#c7511f] hover:underline"
+          >
+            {product.category}
+          </Link>
+          <ChevronRight className="w-3 h-3 text-gray-400 shrink-0" />
+          <span className="text-[#0f1111] truncate max-w-sm">{product.name}</span>
+        </nav>
 
-      {/* Main Product Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
-        {/* Left: Gallery (5 cols) */}
-        <div className="lg:col-span-6 flex flex-col gap-4">
-          <div className="card relative aspect-square bg-slate-900 border-slate-800 flex items-center justify-center overflow-hidden">
-            <ProductImage
-              src={currentImage}
-              alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-300"
-            />
-            {discount && (
-              <span className="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-md">
-                Save {discount}%
-              </span>
-            )}
-            <button
-              onClick={() => toggle(product.id)}
-              aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-              className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                wishlisted
-                  ? 'bg-red-500 text-white'
-                  : 'bg-slate-900/80 text-slate-400 hover:text-red-400 hover:bg-slate-900'
-              }`}
-            >
-              <Heart className="w-5 h-5" fill={wishlisted ? 'currentColor' : 'none'} />
-            </button>
-          </div>
-
-          {/* Thumbnails */}
-          {allImages.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {allImages.map((img, idx) => (
+        {/* ── Product Main Layout: Left Images, Center Info, Right Buy Box ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* ── Left: Image Gallery (cols 1-5) ───────────────────────────── */}
+          <div className="lg:col-span-5 flex flex-col-reverse md:flex-row gap-4">
+            {/* Thumbnail Column */}
+            <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto max-h-[480px]">
+              {allImages.map((img, i) => (
                 <button
-                  key={idx}
+                  key={i}
                   onClick={() => setSelectedImage(img)}
-                  className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
+                  className={`w-14 h-14 rounded-[4px] border-2 p-1 bg-white shrink-0 cursor-pointer overflow-hidden transition-all ${
                     currentImage === img
-                      ? 'border-teal-400 shadow-md shadow-teal-500/20'
-                      : 'border-slate-800 hover:border-slate-600 opacity-70 hover:opacity-100'
+                      ? 'border-[#e77600] shadow-sm'
+                      : 'border-[#d5d9d9] hover:border-[#888c8c]'
                   }`}
                 >
-                  <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                  <img src={img} alt={`Thumbnail ${i}`} className="w-full h-full object-contain" />
                 </button>
               ))}
             </div>
-          )}
-        </div>
 
-        {/* Right: Details & Purchase (6 cols) */}
-        <div className="lg:col-span-6 flex flex-col gap-6">
-          <div>
-            <div className="inline-block bg-teal-500/10 text-teal-400 text-xs font-semibold px-2.5 py-1 rounded-full border border-teal-500/20 mb-3">
-              {product.category}
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug mb-3">
-              {product.name}
-            </h1>
-            <div className="flex items-center gap-4">
-              <StarRating rating={product.rating} count={product.reviewCount} size="md" />
-              <span className="text-slate-600">|</span>
-              <span className="text-xs font-medium text-emerald-400 flex items-center gap-1">
-                <Check className="w-3.5 h-3.5" /> In Stock ({product.stock} available)
-              </span>
-            </div>
-          </div>
-
-          {/* Price */}
-          <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 flex items-baseline gap-3">
-            <span className="text-3xl font-black text-white">{formatPrice(product.price)}</span>
-            {product.originalPrice && (
-              <>
-                <span className="text-base text-slate-500 line-through">
-                  {formatPrice(product.originalPrice)}
-                </span>
-                <span className="text-xs font-bold text-orange-400">
-                  Save {formatPrice(product.originalPrice - product.price)}
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Description */}
-          <p className="text-slate-300 text-sm leading-relaxed">{product.description}</p>
-
-          {/* Feature highlights */}
-          {product.highlights && product.highlights.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-slate-200 mb-3">Key Features:</h3>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
-                {product.highlights.map((h, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <Zap className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-                    <span>{h}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Quantity and Actions */}
-          <div className="pt-2 border-t border-slate-800 flex flex-col gap-4">
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-slate-300">Quantity:</span>
-              <QuantitySelector
-                value={quantity}
-                min={1}
-                max={Math.min(product.stock, 10)}
-                onChange={setQuantity}
+            {/* Main Interactive Image */}
+            <div className="flex-1 aspect-square bg-white flex items-center justify-center p-4 border border-[#e7e7e7] rounded-[4px] relative">
+              <img
+                src={currentImage}
+                alt={product.name}
+                className="max-h-full max-w-full object-contain"
               />
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                onClick={handleAddToCart}
-                className="btn-primary flex items-center justify-center gap-2 py-3.5"
-              >
-                {added ? (
-                  <>
-                    <Check className="w-5 h-5 text-emerald-200" />
-                    <span>Added to Cart!</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-5 h-5" />
-                    <span>Add to Cart</span>
-                  </>
-                )}
-              </button>
-              <button
-                onClick={handleBuyNow}
-                className="btn-teal flex items-center justify-center gap-2 py-3.5"
-              >
-                <Zap className="w-5 h-5" />
-                <span>Buy Now</span>
-              </button>
+          {/* ── Center: Product Details (cols 6-9) ────────────────────────── */}
+          <div className="lg:col-span-4 flex flex-col gap-3">
+            <div>
+              <p className="text-xs text-[#007185] hover:text-[#c7511f] hover:underline cursor-pointer font-medium">
+                Visit the {product.category} Store
+              </p>
+              <h1 className="text-xl sm:text-2xl font-medium text-[#0f1111] leading-snug mt-1">
+                {product.name}
+              </h1>
+            </div>
+
+            {/* Ratings & Choice Badge */}
+            <div className="flex flex-wrap items-center gap-3 pb-3 border-b border-[#e7e7e7]">
+              <StarRating rating={product.rating} count={product.reviewCount} size="md" />
+              {product.rating >= 4.6 && (
+                <span className="bg-[#232f3e] text-white text-[10px] font-bold px-2 py-0.5 rounded-[2px]">
+                  Amazon's <span className="text-[#febd69]">Choice</span>
+                </span>
+              )}
+            </div>
+
+            {/* Pricing Section */}
+            <div className="pb-3 border-b border-[#e7e7e7]">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl text-[#cc0c39] font-light">-{discount}%</span>
+                <span className="text-3xl font-normal text-[#0f1111] tracking-tight">
+                  {formatPrice(product.price)}
+                </span>
+              </div>
+              {product.originalPrice && (
+                <p className="text-xs text-[#565959] mt-0.5">
+                  M.R.P.: <span className="line-through">{formatPrice(product.originalPrice)}</span>
+                </p>
+              )}
+              <p className="text-xs text-[#0f1111] mt-1">Inclusive of all taxes</p>
+              <p className="text-xs text-[#0f1111] mt-1 flex items-center gap-1 font-medium">
+                <CreditCard className="w-3.5 h-3.5 text-[#007185]" />
+                EMI starts at ₹1,120. No Cost EMI available
+              </p>
+            </div>
+
+            {/* Special Offers Box */}
+            <div className="bg-[#fcfcfc] border border-[#d5d9d9] p-3 rounded-[4px]">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[#0f1111] mb-2">
+                <Tag className="w-4 h-4 text-[#cc0c39]" />
+                <span>Offers</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="border border-[#e7e7e7] bg-white p-2 rounded-[4px]">
+                  <p className="font-bold text-[#0f1111]">Bank Offer</p>
+                  <p className="text-[11px] text-[#565959]">Up to ₹1,500 discount on select Credit Cards</p>
+                </div>
+                <div className="border border-[#e7e7e7] bg-white p-2 rounded-[4px]">
+                  <p className="font-bold text-[#0f1111]">Partner Offer</p>
+                  <p className="text-[11px] text-[#565959]">Get GST invoice and save up to 28% on business purchases</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Amazon Trust Features Icons */}
+            <div className="grid grid-cols-4 gap-2 py-3 border-y border-[#e7e7e7] text-center text-[11px] text-[#007185]">
+              <div className="flex flex-col items-center">
+                <RotateCcw className="w-6 h-6 mb-1 text-[#0f1111]" />
+                <span>7 days Replacement</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <Truck className="w-6 h-6 mb-1 text-[#0f1111]" />
+                <span>Free Delivery</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <ShieldCheck className="w-6 h-6 mb-1 text-[#0f1111]" />
+                <span>1 Year Warranty</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-6 h-6 bg-[#febd69] rounded-full flex items-center justify-center font-bold text-[#131921] mb-1 text-xs">
+                  A
+                </div>
+                <span>Amazon Delivered</span>
+              </div>
+            </div>
+
+            {/* About this item */}
+            <div className="pt-2">
+              <h2 className="text-sm font-bold text-[#0f1111] mb-2">About this item</h2>
+              <ul className="space-y-1.5 text-xs text-[#0f1111] list-disc list-inside leading-relaxed">
+                {product.highlights && product.highlights.length > 0
+                  ? product.highlights.map((h, i) => <li key={i}>{h}</li>)
+                  : (
+                    <>
+                      <li>High quality materials engineered for maximum reliability and daily use.</li>
+                      <li>Designed with ergonomic comfort and modern aesthetic standards.</li>
+                      <li>Includes comprehensive manufacturer warranty and customer support.</li>
+                    </>
+                  )}
+                <li>{product.description}</li>
+              </ul>
             </div>
           </div>
 
-          {/* Trust Guarantees */}
-          <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-800 text-center">
-            <div className="flex flex-col items-center gap-1 p-2 bg-slate-900/40 rounded-lg">
-              <Truck className="w-5 h-5 text-teal-400" />
-              <span className="text-xs text-slate-300 font-medium">Free Shipping</span>
-              <span className="text-[10px] text-slate-500">Orders over $50</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-2 bg-slate-900/40 rounded-lg">
-              <RotateCcw className="w-5 h-5 text-teal-400" />
-              <span className="text-xs text-slate-300 font-medium">30 Days Return</span>
-              <span className="text-[10px] text-slate-500">Hassle-free guarantee</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-2 bg-slate-900/40 rounded-lg">
-              <ShieldCheck className="w-5 h-5 text-teal-400" />
-              <span className="text-xs text-slate-300 font-medium">Safe Checkout</span>
-              <span className="text-[10px] text-slate-500">Demo certified secure</span>
+          {/* ── Right: Amazon Buy Box (cols 10-12) ─────────────────────────── */}
+          <div className="lg:col-span-3">
+            <div className="border border-[#d5d9d9] rounded-[8px] p-4 bg-white shadow-sm flex flex-col gap-3 sticky top-24">
+              <div>
+                <span className="text-2xl font-normal text-[#0f1111]">
+                  {formatPrice(product.price)}
+                </span>
+              </div>
+
+              {/* Prime Delivery info */}
+              <div className="flex flex-col gap-1 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <PrimeBadge />
+                </div>
+                <p className="text-[#0f1111]">
+                  FREE delivery <span className="font-bold">Tomorrow, 11 AM</span>
+                </p>
+                <div className="flex items-center gap-1 text-[#007185] hover:text-[#c7511f] cursor-pointer">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Delivering to Mumbai 400001</span>
+                </div>
+              </div>
+
+              {/* Stock Status */}
+              <div>
+                {product.stock > 0 ? (
+                  <p className="text-lg font-medium text-[#007600]">In stock</p>
+                ) : (
+                  <p className="text-lg font-medium text-[#cc0c39]">Currently unavailable</p>
+                )}
+              </div>
+
+              {/* Quantity Selector */}
+              {product.stock > 0 && (
+                <div className="flex items-center gap-2">
+                  <label htmlFor="qty" className="text-xs text-[#0f1111]">Quantity:</label>
+                  <select
+                    id="qty"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    className="border border-[#d5d9d9] bg-[#f0f2f2] hover:bg-[#e3e6e6] rounded-[8px] px-2 py-1 text-xs font-medium text-[#0f1111] shadow-inner outline-none cursor-pointer"
+                  >
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2 pt-1">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={product.stock === 0}
+                  className="btn-amazon-primary w-full py-2.5 shadow-sm font-normal text-sm cursor-pointer"
+                >
+                  {added ? (
+                    <span className="flex items-center justify-center gap-1 text-[#007600] font-bold">
+                      <Check className="w-4 h-4 stroke-[3]" /> Added to Cart
+                    </span>
+                  ) : (
+                    'Add to Cart'
+                  )}
+                </button>
+
+                <button
+                  onClick={handleBuyNow}
+                  disabled={product.stock === 0}
+                  className="btn-amazon-secondary w-full py-2.5 shadow-sm font-normal text-sm cursor-pointer"
+                >
+                  Buy Now
+                </button>
+              </div>
+
+              {/* Security & Seller Details */}
+              <div className="text-[11px] text-[#565959] space-y-1 pt-2 border-t border-[#e7e7e7]">
+                <div className="flex items-center gap-1.5 text-[#007185]">
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Secure transaction</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1 pt-1">
+                  <span className="text-[#565959]">Ships from</span>
+                  <span className="text-[#0f1111] font-medium">Amazon</span>
+                  <span className="text-[#565959]">Sold by</span>
+                  <span className="text-[#007185] hover:underline cursor-pointer font-medium">
+                    RetailNet
+                  </span>
+                </div>
+              </div>
+
+              {/* Wishlist Button */}
+              <div className="pt-2 border-t border-[#e7e7e7]">
+                <button
+                  onClick={() => toggle(product.id)}
+                  className="btn-amazon-white w-full py-2 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Heart
+                    className={`w-3.5 h-3.5 ${wishlisted ? 'text-[#cc0c39] fill-[#cc0c39]' : 'text-gray-500'}`}
+                  />
+                  <span>{wishlisted ? 'Remove from Wish List' : 'Add to Wish List'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Related Products */}
-      {relatedProducts.length > 0 && (
-        <section className="pt-12 border-t border-slate-800">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-slate-100">Related Products</h2>
-            <Link
-              to={`/category/${encodeURIComponent(product.category)}`}
-              className="text-teal-400 hover:text-teal-300 text-sm font-medium transition-colors"
-            >
-              View all in {product.category} &rarr;
-            </Link>
+        {/* ── Related Products Carousel ────────────────────────────────────── */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-16 pt-8 border-t border-[#e7e7e7]">
+            <h2 className="text-xl font-bold text-[#0f1111] mb-4">
+              Customers who viewed this item also viewed
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {relatedProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {relatedProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        </section>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, Search, Menu, X, Zap } from 'lucide-react';
+import { ShoppingCart, MapPin, Search, Menu, X, ChevronDown, Heart } from 'lucide-react';
 import { useCartStore } from '../../context/CartContext';
 import { useWishlistStore } from '../../context/WishlistContext';
+import { AmazonLogo } from '../ui/AmazonLogo';
 
 export function Header() {
   const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const totalItems = useCartStore((s) => s.getTotalItems());
@@ -13,128 +15,242 @@ export function Header() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+    if (query.trim()) {
+      const catParam = selectedCategory !== 'All' ? `&category=${encodeURIComponent(selectedCategory)}` : '';
+      navigate(`/search?q=${encodeURIComponent(query.trim())}${catParam}`);
+    }
   };
 
-  const categories = ['Electronics', 'Fashion', 'Home & Living', 'Accessories', 'Beauty', 'Sports'];
+  const navCategories = [
+    'Amazon miniTV',
+    'Sell',
+    'Best Sellers',
+    "Today's Deals",
+    'Mobiles',
+    'Prime',
+    'Customer Service',
+    'Electronics',
+    'Home & Kitchen',
+    'Fashion',
+    'Computers',
+  ];
+
+  const searchCategories = [
+    'All Categories',
+    'Electronics',
+    'Fashion',
+    'Home & Living',
+    'Accessories',
+    'Beauty',
+    'Sports',
+  ];
 
   return (
-    <header className="sticky top-0 z-50 bg-navy-900 border-b border-slate-800 shadow-lg shadow-black/30">
-      {/* Top bar */}
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 shrink-0 group">
-          <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center group-hover:bg-teal-400 transition-colors">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-extrabold tracking-tight">
-            <span className="text-white">Shop</span>
-            <span className="text-teal-400">Sphere</span>
-          </span>
-        </Link>
+    <header className="sticky top-0 z-50 select-none shadow-md">
+      {/* ── Top Bar (Amazon Dark #131921) ─────────────────────────────────── */}
+      <div className="bg-[#131921] text-white">
+        <div className="max-w-[1500px] mx-auto px-2 sm:px-4 h-[60px] flex items-center gap-2 md:gap-4">
+          {/* Amazon.in Logo */}
+          <Link
+            to="/"
+            className="p-2 border border-transparent hover:border-white rounded-[2px] transition-colors flex items-center shrink-0"
+            aria-label="Amazon.in Home"
+          >
+            <AmazonLogo />
+          </Link>
 
-        {/* Search */}
-        <form onSubmit={handleSearch} className="flex-1 flex items-center hidden sm:flex">
-          <div className="relative w-full max-w-2xl">
+          {/* Location Delivery Selector (Desktop) */}
+          <div className="hidden lg:flex items-center gap-1 p-2 border border-transparent hover:border-white rounded-[2px] cursor-pointer text-xs shrink-0">
+            <MapPin className="w-4 h-4 text-white -mt-2.5" />
+            <div className="flex flex-col leading-tight">
+              <span className="text-[#cccccc] text-[11px]">Delivering to Mumbai 400001</span>
+              <span className="text-white font-bold text-xs">Update location</span>
+            </div>
+          </div>
+
+          {/* Unified Amazon Search Bar */}
+          <form
+            onSubmit={handleSearch}
+            className="flex-1 flex items-center h-10 rounded-[4px] focus-within:ring-2 focus-within:ring-[#e77600] overflow-hidden"
+          >
+            {/* Category Dropdown */}
+            <div className="hidden md:flex items-center h-full bg-[#e6e6e6] hover:bg-[#dadada] text-[#0f1111] text-xs border-r border-[#cdcdcd] px-3 cursor-pointer shrink-0 transition-colors">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="bg-transparent text-xs text-[#0f1111] cursor-pointer outline-none border-none py-1 pr-1 font-normal"
+              >
+                {searchCategories.map((c) => (
+                  <option key={c} value={c === 'All Categories' ? 'All' : c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Search Input */}
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for products, brands, categories…"
-              className="w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-500 rounded-lg pl-4 pr-12 py-2.5 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors text-sm"
+              placeholder="Search Amazon.in"
+              className="flex-1 h-full px-3 text-[#0f1111] bg-white text-sm outline-none placeholder:text-[#565959]"
             />
+
+            {/* Amber Search Button */}
             <button
               type="submit"
-              className="absolute right-0 top-0 h-full px-4 bg-teal-500 hover:bg-teal-600 rounded-r-lg text-white transition-colors flex items-center"
+              className="h-full px-4 bg-[#febd69] hover:bg-[#f3a847] text-[#131921] transition-colors flex items-center justify-center shrink-0 cursor-pointer"
               aria-label="Search"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-5 h-5 stroke-[2.5]" />
             </button>
-          </div>
-        </form>
+          </form>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 ml-auto sm:ml-0">
+          {/* Language Selector */}
+          <div className="hidden xl:flex items-center gap-1 p-2 border border-transparent hover:border-white rounded-[2px] cursor-pointer text-xs font-bold shrink-0">
+            <span className="text-base">🇮🇳</span>
+            <span>EN</span>
+            <ChevronDown className="w-3 h-3 text-gray-400" />
+          </div>
+
+          {/* Accounts & Lists */}
+          <Link
+            to="/orders"
+            className="hidden sm:flex flex-col leading-tight p-2 border border-transparent hover:border-white rounded-[2px] cursor-pointer shrink-0 text-left"
+          >
+            <span className="text-[11px] text-[#cccccc]">Hello, sign in</span>
+            <span className="text-xs font-bold flex items-center gap-0.5">
+              Account & Lists
+              <ChevronDown className="w-3 h-3 text-gray-400" />
+            </span>
+          </Link>
+
+          {/* Returns & Orders */}
+          <Link
+            to="/orders"
+            className="hidden sm:flex flex-col leading-tight p-2 border border-transparent hover:border-white rounded-[2px] cursor-pointer shrink-0 text-left"
+          >
+            <span className="text-[11px] text-[#cccccc]">Returns</span>
+            <span className="text-xs font-bold">& Orders</span>
+          </Link>
+
+          {/* Wishlist */}
           <Link
             to="/wishlist"
-            className="relative w-10 h-10 flex items-center justify-center text-slate-400 hover:text-red-400 transition-colors rounded-lg hover:bg-slate-800"
+            className="flex items-center gap-1 p-2 border border-transparent hover:border-white rounded-[2px] cursor-pointer shrink-0 text-white hover:text-[#febd69] transition-colors"
             aria-label="Wishlist"
           >
-            <Heart className="w-5 h-5" />
-            {wishlistCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                {wishlistCount > 9 ? '9+' : wishlistCount}
-              </span>
-            )}
+            <div className="relative">
+              <Heart className="w-6 h-6" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-[#cc0c39] text-white text-[10px] font-bold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
+            </div>
+            <span className="hidden md:inline text-xs font-bold mt-2">Wishlist</span>
           </Link>
 
+          {/* Cart Icon */}
           <Link
             to="/cart"
-            className="relative w-10 h-10 flex items-center justify-center text-slate-400 hover:text-orange-400 transition-colors rounded-lg hover:bg-slate-800"
-            aria-label="Cart"
+            className="flex items-end p-2 border border-transparent hover:border-white rounded-[2px] cursor-pointer shrink-0"
+            aria-label="Shopping Cart"
           >
-            <ShoppingCart className="w-5 h-5" />
-            {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                {totalItems > 9 ? '9+' : totalItems}
+            <div className="relative flex items-center">
+              <ShoppingCart className="w-8 h-8 text-white" />
+              <span className="absolute left-[11px] top-[-2px] text-[#f08804] text-[15px] font-bold">
+                {totalItems}
               </span>
-            )}
+            </div>
+            <span className="text-xs font-bold mb-1 hidden sm:inline ml-1">Cart</span>
           </Link>
 
-          {/* Mobile menu toggle */}
+          {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="sm:hidden w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors"
-            aria-label="Toggle menu"
+            className="sm:hidden p-2 text-white hover:border border-white rounded-[2px]"
+            aria-label="Open Mobile Menu"
           >
-            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </div>
 
-      {/* Category nav — desktop */}
-      <div className="hidden sm:block border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex items-center gap-1 py-1 overflow-x-auto">
-            {categories.map((cat) => (
+      {/* ── Sub Navigation Bar (Amazon Slate #232f3e) ─────────────────────── */}
+      <div className="bg-[#232f3e] text-white text-xs">
+        <div className="max-w-[1500px] mx-auto px-2 sm:px-4 h-10 flex items-center justify-between">
+          <div className="flex items-center gap-0.5 overflow-x-auto no-scrollbar">
+            {/* "All" Hamburger Button */}
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="flex items-center gap-1.5 font-bold px-2 py-1.5 border border-transparent hover:border-white rounded-[2px] whitespace-nowrap"
+            >
+              <Menu className="w-4 h-4" />
+              <span>All</span>
+            </button>
+
+            {/* Quick Links */}
+            {navCategories.map((item) => (
               <Link
-                key={cat}
-                to={`/category/${encodeURIComponent(cat)}`}
-                className="whitespace-nowrap text-xs font-medium text-slate-400 hover:text-teal-400 px-3 py-1.5 rounded hover:bg-slate-800/60 transition-colors"
+                key={item}
+                to={
+                  item === "Today's Deals"
+                    ? '/search?q=deal'
+                    : item === 'Best Sellers'
+                    ? '/category/Electronics'
+                    : item === 'Mobiles'
+                    ? '/category/Electronics'
+                    : item === 'Electronics'
+                    ? '/category/Electronics'
+                    : item === 'Home & Kitchen'
+                    ? '/category/Home%20%26%20Living'
+                    : item === 'Fashion'
+                    ? '/category/Fashion'
+                    : item === 'Customer Service'
+                    ? '/orders'
+                    : `/category/${encodeURIComponent(item)}`
+                }
+                className="px-2 py-1.5 border border-transparent hover:border-white rounded-[2px] whitespace-nowrap text-white font-normal hover:text-white transition-colors"
               >
-                {cat}
+                {item}
               </Link>
             ))}
-          </nav>
+          </div>
+
+          {/* Great Indian Festival banner prompt */}
+          <div className="hidden lg:flex items-center gap-2 text-[11px] text-[#febd69] font-medium pr-2 shrink-0">
+            <span>Great Indian Festival | Deals Live Now</span>
+          </div>
         </div>
       </div>
 
-      {/* Mobile dropdown */}
+      {/* ── Mobile Drawer / Dropdown ──────────────────────────────────────── */}
       {menuOpen && (
-        <div className="sm:hidden border-t border-slate-800 bg-navy-900 px-4 py-3 flex flex-col gap-2">
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search products…"
-              className="flex-1 input text-sm py-2"
-            />
-            <button type="submit" className="btn-teal py-2 px-4 rounded-lg text-sm">
-              <Search className="w-4 h-4" />
+        <div className="bg-[#131921] border-t border-[#37475a] p-4 text-white flex flex-col gap-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#37475a]">
+            <span className="font-bold text-sm">Browse Amazon</span>
+            <button onClick={() => setMenuOpen(false)}>
+              <X className="w-5 h-5 text-gray-400" />
             </button>
-          </form>
-          <div className="flex flex-wrap gap-2 pt-1">
-            {categories.map((cat) => (
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {searchCategories.map((cat) => (
               <Link
                 key={cat}
-                to={`/category/${encodeURIComponent(cat)}`}
+                to={cat === 'All Categories' ? '/' : `/category/${encodeURIComponent(cat)}`}
                 onClick={() => setMenuOpen(false)}
-                className="text-xs text-slate-400 hover:text-teal-400 bg-slate-800 px-3 py-1.5 rounded-full transition-colors"
+                className="p-2 bg-[#232f3e] rounded hover:bg-[#37475a] transition-colors"
               >
                 {cat}
               </Link>
             ))}
+          </div>
+          <div className="border-t border-[#37475a] pt-3 flex flex-col gap-2 text-xs text-[#cccccc]">
+            <Link to="/orders" onClick={() => setMenuOpen(false)} className="hover:text-white">Your Orders</Link>
+            <Link to="/wishlist" onClick={() => setMenuOpen(false)} className="hover:text-white">Your Wish List</Link>
+            <Link to="/cart" onClick={() => setMenuOpen(false)} className="hover:text-white">Your Cart ({totalItems})</Link>
           </div>
         </div>
       )}

@@ -10,36 +10,68 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-slate-950 text-slate-100 font-sans antialiased;
+    background-color: #eaeded;
+    color: #0f1111;
+    font-family: "Amazon Ember", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
   img {
     @apply max-w-full;
   }
+  a {
+    color: inherit;
+  }
 }
 
 @layer components {
+  /* Amazon Button Styles */
+  .btn-amazon-primary {
+    @apply bg-[#ffd814] hover:bg-[#f7ca00] text-[#0f1111] font-normal text-sm px-4 py-2 rounded-full border border-[#fcd200] shadow-sm transition-colors active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-center cursor-pointer;
+  }
+
+  .btn-amazon-secondary {
+    @apply bg-[#ffa41c] hover:bg-[#fa8900] text-[#0f1111] font-normal text-sm px-4 py-2 rounded-full border border-[#ff8f00] shadow-sm transition-colors active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-center cursor-pointer;
+  }
+
+  .btn-amazon-white {
+    @apply bg-white hover:bg-[#f7fafa] text-[#0f1111] font-normal text-sm px-4 py-2 rounded-full border border-[#d5d9d9] shadow-sm transition-colors active:scale-[0.99] flex items-center justify-center text-center cursor-pointer;
+  }
+
+  /* Compatibility with existing class names */
   .btn-primary {
-    @apply bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply btn-amazon-primary;
   }
   .btn-secondary {
-    @apply bg-slate-800 hover:bg-slate-700 text-slate-100 font-medium px-6 py-3 rounded-lg border border-slate-700 transition-all duration-200 active:scale-95;
+    @apply btn-amazon-white;
   }
   .btn-teal {
-    @apply bg-teal-500 hover:bg-teal-600 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95;
+    @apply btn-amazon-primary;
   }
+
+  /* Amazon White Card */
   .card {
-    @apply bg-slate-900 border border-slate-800 rounded-xl overflow-hidden;
+    @apply bg-white border border-[#e7e7e7] rounded-none md:rounded-[4px] shadow-sm overflow-hidden;
   }
+
+  .amazon-card {
+    @apply bg-white p-5 rounded-[4px] shadow-sm border border-[#e7e7e7];
+  }
+
   .input {
-    @apply w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-500 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors;
+    @apply w-full bg-white border border-[#888c8c] text-[#0f1111] placeholder-[#565959] rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-[#e77600] focus:ring-1 focus:ring-[#e77600] transition-colors shadow-inner;
   }
+
   .badge {
-    @apply inline-flex items-center gap-1 bg-teal-500/10 text-teal-400 text-xs font-medium px-2 py-0.5 rounded-full border border-teal-500/20;
+    @apply inline-flex items-center gap-1 bg-[#cc0c39] text-white text-xs font-bold px-2 py-0.5 rounded-[2px];
+  }
+
+  .badge-prime {
+    @apply inline-flex items-center font-bold italic text-[#00a8e1] text-sm tracking-tight;
   }
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { @apply bg-slate-950; }
-::-webkit-scrollbar-thumb { @apply bg-slate-700 rounded-full; }
-::-webkit-scrollbar-thumb:hover { @apply bg-slate-600; }
+/* Amazon Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }

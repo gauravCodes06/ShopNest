@@ -2,62 +2,84 @@ import { Link } from 'react-router-dom';
 import { useWishlistStore } from '../context/WishlistContext';
 import { useCartStore } from '../context/CartContext';
 import { getProductById } from '../data/products';
-import { ProductCard } from '../components/products/ProductCard';
-import { Heart, ArrowRight, ShoppingCart, Trash2 } from 'lucide-react';
+import { formatPrice } from '../lib/utils';
+import { StarRating } from '../components/ui/StarRating';
+import { Heart, Trash2, ShoppingCart } from 'lucide-react';
 
 export function WishlistPage() {
   const { ids, toggle } = useWishlistStore();
   const addItem = useCartStore((s) => s.addItem);
 
-  const wishlistedProducts = ids
-    .map((id) => getProductById(id))
-    .filter((p): p is NonNullable<typeof p> => p !== undefined);
+  const wishlistProducts = ids.map((id) => getProductById(id)).filter(Boolean);
 
-  const handleAddAllToCart = () => {
-    wishlistedProducts.forEach((p) => addItem(p.id, 1));
-  };
-
-  if (wishlistedProducts.length === 0) {
+  if (wishlistProducts.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <div className="w-20 h-20 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-500">
-          <Heart className="w-10 h-10" />
+      <div className="max-w-[1200px] mx-auto px-4 py-12">
+        <div className="bg-white p-8 rounded-[4px] border border-[#d5d9d9] shadow-sm text-center">
+          <Heart className="w-16 h-16 text-gray-300 mx-auto mb-3" />
+          <h1 className="text-2xl font-bold text-[#0f1111] mb-2">Your Wish List is empty</h1>
+          <p className="text-xs text-[#565959] mb-6">
+            Explore products and tap the heart icon on items you love to save them for later.
+          </p>
+          <Link to="/" className="btn-amazon-primary inline-flex px-6 py-2 text-sm">
+            Continue Shopping
+          </Link>
         </div>
-        <h2 className="text-2xl font-bold text-slate-100 mb-2">Your Wishlist is Empty</h2>
-        <p className="text-slate-400 mb-8 max-w-md mx-auto">
-          Save your favorite products to keep track of deals, stock, and future buys.
-        </p>
-        <Link to="/" className="btn-primary inline-flex items-center gap-2">
-          Discover Products <ArrowRight className="w-4 h-4" />
-        </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Your Wishlist</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            {wishlistedProducts.length} {wishlistedProducts.length === 1 ? 'item' : 'items'} saved
-          </p>
+    <div className="max-w-[1200px] mx-auto px-4 py-8">
+      <div className="bg-white p-6 rounded-[4px] border border-[#d5d9d9] shadow-sm">
+        <div className="flex items-center justify-between border-b border-[#e7e7e7] pb-4 mb-4">
+          <h1 className="text-2xl font-bold text-[#0f1111]">Your Wish List</h1>
+          <span className="text-xs text-[#565959]">{wishlistProducts.length} items</span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleAddAllToCart}
-            className="btn-primary flex items-center gap-2 text-sm py-2.5 px-4"
-          >
-            <ShoppingCart className="w-4 h-4" /> Add All to Cart
-          </button>
-        </div>
-      </div>
+        <div className="divide-y divide-[#e7e7e7]">
+          {wishlistProducts.map((p) => {
+            if (!p) return null;
+            return (
+              <div key={p.id} className="py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <Link to={`/product/${p.id}`} className="w-24 h-24 p-2 bg-white border border-gray-100 rounded shrink-0">
+                    <img src={p.image} alt={p.name} className="w-full h-full object-contain" />
+                  </Link>
+                  <div>
+                    <Link
+                      to={`/product/${p.id}`}
+                      className="text-sm font-medium text-[#007185] hover:text-[#c7511f] hover:underline line-clamp-2"
+                    >
+                      {p.name}
+                    </Link>
+                    <div className="my-1">
+                      <StarRating rating={p.rating} count={p.reviewCount} />
+                    </div>
+                    <p className="text-base font-bold text-[#0f1111]">{formatPrice(p.price)}</p>
+                    <p className="text-xs text-[#007600] font-medium">In stock</p>
+                  </div>
+                </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {wishlistedProducts.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
+                <div className="flex items-center gap-3 shrink-0">
+                  <button
+                    onClick={() => addItem(p.id)}
+                    className="btn-amazon-primary px-4 py-1.5 text-xs font-normal"
+                  >
+                    Add to Cart
+                  </button>
+                  <button
+                    onClick={() => toggle(p.id)}
+                    className="p-2 text-gray-400 hover:text-[#cc0c39] border border-gray-200 rounded-full hover:bg-gray-50 transition-colors"
+                    aria-label="Remove from Wishlist"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
