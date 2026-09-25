@@ -3,7 +3,7 @@
     "PreInvocation": [
       {
         "type": "command",
-        "command": "powershell -ExecutionPolicy Bypass -File .agents/scripts/capture-turn.ps1 -EventType prompt",
+        "command": "if exist run-capture.cmd (run-capture.cmd -EventType prompt) else (.\\.agents\\run-capture.cmd -EventType prompt)",
         "timeout": 15
       }
     ]
@@ -12,7 +12,7 @@
     "Stop": [
       {
         "type": "command",
-        "command": "powershell -ExecutionPolicy Bypass -File .agents/scripts/capture-turn.ps1 -EventType response",
+        "command": "if exist run-capture.cmd (run-capture.cmd -EventType response) else (.\\.agents\\run-capture.cmd -EventType response)",
         "timeout": 15
       }
     ]

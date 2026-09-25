@@ -1,4 +1,4 @@
-﻿# capture-turn.ps1
+# capture-turn.ps1
 # Reads the hook payload from stdin, extracts the last USER_INPUT prompt
 # or last PLANNER_RESPONSE from the transcript, then appends to the session log.
 #
@@ -24,8 +24,18 @@ $modelName      = $payload.modelName
 $workspacePaths = $payload.workspacePaths
 
 # Resolve workspace root (first entry)
-$workspaceRoot = $workspacePaths[0]
-$logDir        = Join-Path $workspaceRoot ".agent-logs"
+$workspaceRoot = $null
+if ($workspacePaths -and $workspacePaths.Count -gt 0) {
+    $workspaceRoot = $workspacePaths[0]
+}
+if (-not $workspaceRoot -or -not (Test-Path $workspaceRoot)) {
+    $workspaceRoot = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+}
+if (-not $workspaceRoot -or -not (Test-Path $workspaceRoot)) {
+    $workspaceRoot = Get-Location
+}
+
+$logDir = Join-Path $workspaceRoot ".agent-logs"
 
 if (-not (Test-Path $logDir)) {
     New-Item -ItemType Directory -Force -Path $logDir | Out-Null
@@ -63,7 +73,14 @@ for ($retry = 0; $retry -lt 5; $retry++) {
                 $steps += $step
             } catch {}
         }
-        $matched = @($steps | Where-Object { $_.type -eq $targetType })
+        if ($targetType -eq "USER_INPUT") {
+            $matched = @($steps | Where-Object { $_.type -eq "USER_INPUT" })
+        } else {
+            $matched = @($steps | Where-Object { $_.type -eq "PLANNER_RESPONSE" -and $_.content })
+            if ($matched.Count -eq 0) {
+                $matched = @($steps | Where-Object { $_.type -eq "PLANNER_RESPONSE" })
+            }
+        }
         if ($matched.Count -gt 0) {
             $lastStep = $matched | Select-Object -Last 1
             break
@@ -77,6 +94,7 @@ if (-not $lastStep) {
     exit 0
 }
 
+$stepIdx     = $lastStep.step_index
 $timestamp   = $utcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
 $contentText = $lastStep.content
 if (-not $contentText) { $contentText = ($lastStep | ConvertTo-Json -Depth 5) }
@@ -87,17 +105,26 @@ if (-not (Test-Path $logFile)) {
     Set-Content -Path $logFile -Value $header -Encoding UTF8 -NoNewline
 }
 
-# Count existing entries of this type in THIS session file only
+# Deduplication check: check if this step_index has already been logged for this entry type
 $entryTag = if ($EventType -eq "prompt") { "PROMPT" } else { "RESPONSE" }
+if (Test-Path $logFile) {
+    $existingContent = Get-Content $logFile -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
+    if ($existingContent -and ($existingContent -match "\[LOG_ENTRY type=$entryTag [^\]]*step=$stepIdx\]" -or $existingContent -match "step_index: $stepIdx`r?`n")) {
+        Write-Output '{}'
+        exit 0
+    }
+}
+
+# Count existing entries of this type in THIS session file only
 $existing = 0
 if (Test-Path $logFile) {
-    $existingContent = Get-Content $logFile -Raw -ErrorAction SilentlyContinue
+    $existingContent = Get-Content $logFile -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
     $existing = ([regex]::Matches($existingContent, "\[LOG_ENTRY type=$entryTag")).Count
 }
 $entryNum = $existing + 1
 
 # Append the entry
-$entry = "`n[LOG_ENTRY type=$entryTag num=$entryNum session=$sessionShort]`ntimestamp: $timestamp`nmodel: $modelName`n`n$contentText`n`n"
+$entry = "`n[LOG_ENTRY type=$entryTag num=$entryNum session=$sessionShort step=$stepIdx]`ntimestamp: $timestamp`nmodel: $modelName`nstep_index: $stepIdx`n`n$contentText`n`n"
 Add-Content -Path $logFile -Value $entry -Encoding UTF8 -NoNewline
 
 Write-Output '{}'

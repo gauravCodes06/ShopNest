@@ -1,9 +1,9 @@
-﻿# CAPTURE-TEST.md
+# CAPTURE-TEST.md
 
 ## 1. Tool and Model
 
 - **Tool:** Antigravity IDE (Google DeepMind)
-- **Model:** Claude Sonnet 4.6 (Thinking) — single model, plans and executes
+- **Model:** Gemini 3.8 Flash (Medium) / Claude Sonnet 4.6 (Thinking)
 - **Hook mechanism:** Yes — native `hooks.json` lifecycle system in `.agents/`
 
 ---
@@ -24,8 +24,9 @@ Two events are wired:
 
 | File | Role |
 |---|---|
-| `.agents/hooks.json` | Declares the two hook handlers |
-| `.agents/scripts/capture-turn.ps1` | PowerShell script that reads the session transcript and appends to the log |
+| `.agents/hooks.json` | Declares the hook handlers for `PreInvocation` and `Stop` |
+| `.agents/run-capture.cmd` | Resilient batch wrapper resolving the script path via `%~dp0` regardless of CWD |
+| `.agents/scripts/capture-turn.ps1` | PowerShell script that reads the session transcript and appends deduplicated entries to the log |
 
 ### How it works
 
@@ -38,8 +39,9 @@ Each hook invocation receives a JSON payload on stdin that includes:
 The script:
 1. Switches to `transcript_full.jsonl` (untruncated, same directory)
 2. Retries up to 5 times with 1-second waits if the transcript hasn't flushed yet
-3. Finds the last `USER_INPUT` step (for prompt) or `PLANNER_RESPONSE` step (for response)
-4. Appends a `[LOG_ENTRY]` block to `.agent-logs/YYYY-MM-DD_<session-short-id>.md`
+3. Finds the last `USER_INPUT` step (for prompt) or `PLANNER_RESPONSE` step with content (for response)
+4. Checks `step_index` to deduplicate against intermediate tool calls in the same turn
+5. Appends a `[LOG_ENTRY]` block to `.agent-logs/YYYY-MM-DD_<session-short-id>.md`
    — one file per session ID, so cross-session entries never collide
 
 ---
@@ -52,7 +54,8 @@ Each session gets its own file:
 |---|---|
 | Session 1 `0b1d980d` | `.agent-logs/2026-09-25_0b1d980d.md` |
 | Session 2 `3f9c1a20` | `.agent-logs/2026-09-25_3f9c1a20.md` |
-| Session 3 `784f942e` | `.agent-logs/2026-09-25_784f942e.md` (this session) |
+| Session 3 `784f942e` | `.agent-logs/2026-09-25_784f942e.md` |
+| Session 4 `4c9dcea6` | `.agent-logs/2026-09-25_4c9dcea6.md` (this session) |
 
 ---
 
@@ -97,8 +100,23 @@ model: claude-sonnet-4-6
 [CONTINUE message — git --version confirmed installed]
 ```
 
-(Note: with the old single-file script, both sessions wrote to the same file named
-after session 1. The new per-session script creates separate files going forward.)
+### Session 4 — Turn Deduplication and CWD Canary
+
+The `CONTINUE` message was sent in session `4c9dcea6`. The `PreInvocation` hook fired,
+captured the prompt cleanly under `step_index: 0`, and avoided creating duplicate
+prompt entries across intermediate tool calls.
+
+```
+[LOG_ENTRY type=PROMPT num=1 session=4c9dcea6 step=0]
+timestamp: 2026-09-25T13:15:45.713Z
+model: gemini-3.8-flash-medium
+step_index: 0
+
+<USER_REQUEST>
+CONTINUE 
+</USER_REQUEST>
+...
+```
 
 ---
 
@@ -123,6 +141,18 @@ after session 1. The new per-session script creates separate files going forward
    session) accumulated in whichever file was created first. Fixed by using the
    current `conversationId` from the payload for each file name — one file per session.
 
+6. **Hook Working Directory CWD resolution** — Antigravity IDE executes commands in
+   `hooks.json` with working directory set to `.agents/` (the folder containing
+   `hooks.json`), not the workspace root. Invoking `powershell -File .agents/scripts/capture-turn.ps1`
+   failed when triggered by the IDE because `.agents/.agents/...` did not exist. Fixed by
+   introducing `.agents/run-capture.cmd` which resolves `%~dp0scripts\capture-turn.ps1`
+   regardless of what CWD is.
+
+7. **Multi-invocation prompt deduplication** — In a turn involving multiple tool calls,
+   `PreInvocation` fires before every model invocation. Without deduplication, the same
+   `USER_INPUT` prompt was recorded repeatedly. Fixed by indexing each entry with
+   `step_index` and skipping if that `step_index` has already been logged.
+
 ---
 
 ## Status
@@ -134,6 +164,8 @@ after session 1. The new per-session script creates separate files going forward
 - [x] Session 1 canary captured
 - [x] Git installed (`git version 2.55.0.windows.3`)
 - [x] Session 2 (cross-session) canary — `PreInvocation` fired in new session
+- [x] Working directory resolution fixed via `run-capture.cmd`
+- [x] Step index deduplication implemented
 - [x] All files committed and tracked in git
 - [x] `.agent-logs/` NOT in `.gitignore` — ships with repo
 
