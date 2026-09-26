@@ -16,6 +16,5 @@ build/
 Thumbs.db
 *.local
 
-# Scratch scripts & temporary logs
+# Scratch scripts
 scratch/
-.agent-logs/
