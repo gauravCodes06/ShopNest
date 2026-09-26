@@ -5,6 +5,7 @@ interface WishlistStore {
   ids: string[];
   toggle: (id: string) => void;
   isWishlisted: (id: string) => boolean;
+  clearWishlist: () => void;
 }
 
 export const useWishlistStore = create<WishlistStore>((set, get) => ({
@@ -18,4 +19,9 @@ export const useWishlistStore = create<WishlistStore>((set, get) => ({
   },
 
   isWishlisted: (id) => get().ids.includes(id),
+
+  clearWishlist: () => {
+    saveWishlist([]);
+    set({ ids: [] });
+  },
 }));

@@ -2,16 +2,57 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23131921'/><path d='M25 68C45 80 75 78 85 64' stroke='%23ff9900' stroke-width='8' stroke-linecap='round' fill='none'/><path d='M80 58L88 64L82 72' fill='%23ff9900'/><text x='25' y='55' fill='white' font-family='Arial,sans-serif' font-weight='900' font-size='42'>a</text></svg>" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%230F172A'/><path d='M20 70C20 35 50 15 85 15C85 50 65 80 30 80C26 80 23 79.5 20 78.5C20 75.7 20 72.8 20 70Z' fill='%23059669'/><path d='M25 75C40 65 60 45 75 25' stroke='%23A7F3D0' stroke-width='5' stroke-linecap='round'/><path d='M20 70C15 55 25 40 40 35C40 47.5 32.5 62.5 20 70Z' fill='%2310B981' opacity='0.9'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Online Shopping India - Buy mobiles, laptops, cameras, books, watches, apparel, shoes and e-Gift Cards. Free Shipping & Cash on Delivery Available." />
-    <title>Online Shopping site in India: Shop Online for Mobiles, Books, Watches, Shoes and More - Amazon.in</title>
+    <meta name="description" content="ShopNest — India's premium online marketplace. Discover curated quality products, unbeatable prices and fast doorstep delivery. Electronics, Fashion, Home, Beauty and more." />
+    <meta name="theme-color" content="#0F172A" />
+    <title>ShopNest — Discover More. Shop Smarter.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      /* Clean hiding of Google Translate banner & artifacts */
+      .goog-te-banner-frame.skiptranslate,
+      .goog-te-banner-frame,
+      iframe.goog-te-banner-frame,
+      #goog-gt-tt,
+      .goog-te-balloon-frame,
+      .goog-tooltip,
+      .goog-tooltip:hover {
+        display: none !important;
+        visibility: hidden !important;
+      }
+      body {
+        top: 0px !important;
+        position: static !important;
+      }
+      .goog-text-highlight {
+        background: none !important;
+        box-shadow: none !important;
+      }
+      #google_translate_element {
+        display: none !important;
+      }
+      .skiptranslate:not(.goog-te-gadget) {
+        display: none !important;
+      }
+    </style>
   </head>
-  <body class="bg-[#eaeded] text-[#0f1111]">
+  <body class="bg-[#F5F6F8] text-[#0F172A] font-sans antialiased">
+    <div id="google_translate_element" style="display:none"></div>
     <div id="root"></div>
+    <script type="text/javascript">
+      window.googleTranslateElementInit = function() {
+        if (window.google && window.google.translate) {
+          new window.google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'en,hi,mr,ta,te,bn,kn,ml',
+            autoDisplay: false
+          }, 'google_translate_element');
+        }
+      };
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

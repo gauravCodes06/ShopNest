@@ -1,9 +1,9 @@
 import { useParams, Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
-import { getProductsByCategory, categories } from '../data/products';
+import { getProductsByCategory, products as allProducts } from '../data/products';
 import { ProductCard } from '../components/products/ProductCard';
-import { PrimeBadge } from '../components/ui/AmazonLogo';
-import { ChevronRight, Star } from 'lucide-react';
+import { ChevronRight, Star, SlidersHorizontal, Check } from 'lucide-react';
+import { formatPrice } from '../lib/utils';
 
 type SortKey = 'featured' | 'price-asc' | 'price-desc' | 'rating';
 
@@ -13,8 +13,8 @@ export function CategoryPage() {
 
   const [sort, setSort] = useState<SortKey>('featured');
   const [minRating, setMinRating] = useState(0);
-  const [primeOnly, setPrimeOnly] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [maxPrice, setMaxPrice] = useState(100000);
 
   const allCategoryProducts = useMemo(() => {
     return getProductsByCategory(decodedCategory);
@@ -24,6 +24,7 @@ export function CategoryPage() {
     let list = [...allCategoryProducts];
     if (minRating > 0) list = list.filter((p) => p.rating >= minRating);
     if (inStockOnly) list = list.filter((p) => p.stock > 0);
+    if (maxPrice < 100000) list = list.filter((p) => p.price <= maxPrice);
 
     switch (sort) {
       case 'price-asc':
@@ -35,149 +36,234 @@ export function CategoryPage() {
       default:
         return list;
     }
-  }, [allCategoryProducts, minRating, inStockOnly, sort]);
+  }, [allCategoryProducts, minRating, inStockOnly, maxPrice, sort]);
+
+  // Available categories for sidebar filter with accurate product counts
+  const categoryFilters = useMemo(() => {
+    const mainCategories = [
+      { name: 'Mobiles', path: '/category/Mobiles' },
+      { name: 'Computers', path: '/category/Computers' },
+      { name: 'Electronics', path: '/category/Electronics' },
+      { name: 'Fashion', path: '/category/Fashion' },
+      { name: 'Home & Kitchen', path: '/category/Home%20%26%20Kitchen' },
+      { name: 'Beauty', path: '/category/Beauty' },
+      { name: 'Sports', path: '/category/Sports' },
+      { name: 'Books', path: '/category/Books' },
+    ];
+    return mainCategories.map((c) => ({
+      ...c,
+      count: getProductsByCategory(c.name).length,
+    }));
+  }, []);
 
   return (
-    <div className="bg-[#eaeded] min-h-screen pb-12">
-      {/* ── Amazon Search & Result Count Bar ─────────────────────────────── */}
-      <div className="bg-white border-b border-[#d5d9d9] shadow-sm py-2.5 px-4 mb-4">
-        <div className="max-w-[1500px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="text-[#565959]">
-            <span>1-{filteredProducts.length} of {allCategoryProducts.length} results for </span>
-            <span className="font-bold text-[#c7511f]">"{decodedCategory}"</span>
+    <div className="bg-[#F8FAFC] min-h-screen pb-16">
+      {/* ── Breadcrumb & Category Title Header ───────────────────────── */}
+      <div className="bg-white border-b border-slate-200/80 py-4 px-4 sm:px-6 lg:px-8 mb-6">
+        <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+              <Link to="/" className="hover:text-emerald-600 transition-colors">
+                Home
+              </Link>
+              <ChevronRight className="w-3 h-3 text-slate-400" />
+              <span className="text-slate-700 font-medium capitalize">
+                {decodedCategory}
+              </span>
+            </div>
+            {/* Title + Count matching reference Screen 2 */}
+            <div className="flex items-baseline gap-3">
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight capitalize">
+                {decodedCategory}
+              </h1>
+              <span className="text-xs font-semibold text-slate-500">
+                {allCategoryProducts.length} products
+              </span>
+            </div>
           </div>
 
+          {/* Sort Dropdown */}
           <div className="flex items-center gap-2">
-            <label htmlFor="sort-select" className="text-[#565959]">Sort by:</label>
-            <select
-              id="sort-select"
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-              className="bg-[#f0f2f2] hover:bg-[#e3e6e6] border border-[#d5d9d9] rounded-[8px] px-2.5 py-1 text-xs text-[#0f1111] shadow-inner outline-none cursor-pointer font-medium"
-            >
-              <option value="featured">Featured</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="rating">Avg. Customer Review</option>
-            </select>
+            <span className="text-xs text-slate-500 font-medium">Sort by:</span>
+            <div className="relative">
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+                className="bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 shadow-xs outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 cursor-pointer appearance-none pr-8"
+              >
+                <option value="featured">Featured</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="rating">Customer Rating</option>
+              </select>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Main Category Content: Filters + Product Grid ─────────────────── */}
-      <div className="max-w-[1500px] mx-auto px-4">
+      {/* ── Main Content: Sidebar Filters + Products Grid ─────────────── */}
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Sidebar Filters (cols 1-3) */}
-          <aside className="lg:col-span-3 bg-white p-4 rounded-[4px] border border-[#e7e7e7] shadow-sm text-xs space-y-5">
-            {/* Delivery Day */}
-            <div>
-              <h3 className="font-bold text-sm text-[#0f1111] mb-2">Delivery Day</h3>
-              <label className="flex items-center gap-2 text-[#0f1111] cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={primeOnly}
-                  onChange={(e) => setPrimeOnly(e.target.checked)}
-                  className="rounded text-[#e77600] focus:ring-[#e77600]"
-                />
-                <span>Get It by Tomorrow</span>
-              </label>
+          {/* Left Sidebar Filter Card (matching Screen 2) */}
+          <aside className="lg:col-span-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
+                <span>Filters</span>
+              </div>
+              {(minRating > 0 || inStockOnly || maxPrice < 100000) && (
+                <button
+                  onClick={() => {
+                    setMinRating(0);
+                    setInStockOnly(false);
+                    setMaxPrice(100000);
+                  }}
+                  className="text-[11px] text-emerald-600 hover:text-emerald-700 font-semibold cursor-pointer"
+                >
+                  Reset all
+                </button>
+              )}
             </div>
 
-            {/* Amazon Prime */}
+            {/* Category Filter */}
             <div>
-              <h3 className="font-bold text-sm text-[#0f1111] mb-2">Amazon Prime</h3>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={primeOnly}
-                  onChange={(e) => setPrimeOnly(e.target.checked)}
-                  className="rounded text-[#e77600] focus:ring-[#e77600]"
-                />
-                <PrimeBadge />
-              </label>
-            </div>
-
-            {/* Department */}
-            <div>
-              <h3 className="font-bold text-sm text-[#0f1111] mb-2">Department</h3>
-              <ul className="space-y-1.5 text-[#007185]">
-                {categories.map((c) => (
-                  <li key={c}>
-                    <Link
-                      to={`/category/${encodeURIComponent(c)}`}
-                      className={`hover:text-[#c7511f] hover:underline block ${
-                        c === decodedCategory ? 'font-bold text-[#0f1111]' : ''
-                      }`}
-                    >
-                      {c}
-                    </Link>
-                  </li>
-                ))}
+              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400 mb-3">
+                Category
+              </h3>
+              <ul className="space-y-2">
+                {categoryFilters.map((cat, idx) => {
+                  const isCurrent =
+                    decodedCategory.toLowerCase().trim() === cat.name.toLowerCase().trim() ||
+                    (cat.name === 'Home & Kitchen' && (decodedCategory.toLowerCase().includes('home') || decodedCategory.toLowerCase().includes('kitchen')));
+                  return (
+                    <li key={idx}>
+                      <Link
+                        to={cat.path}
+                        className={`flex items-center justify-between text-xs py-1 px-1.5 rounded-lg transition-colors ${
+                          isCurrent
+                            ? 'text-emerald-700 font-bold bg-emerald-50/70'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={`w-3.5 h-3.5 rounded-md border flex items-center justify-center ${
+                              isCurrent
+                                ? 'bg-emerald-600 border-emerald-600 text-white'
+                                : 'border-slate-300'
+                            }`}
+                          >
+                            {isCurrent && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                          </span>
+                          <span>{cat.name}</span>
+                        </span>
+                        <span className="text-[11px] text-slate-400">({cat.count})</span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
 
-            {/* Customer Review */}
+            {/* Price Range Slider */}
             <div>
-              <h3 className="font-bold text-sm text-[#0f1111] mb-2">Avg. Customer Review</h3>
-              <div className="space-y-1">
-                {[4, 3, 2, 1].map((r) => (
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400">
+                  Price Range
+                </h3>
+                <span className="text-xs font-bold text-slate-800">
+                  Up to {formatPrice(maxPrice)}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="500"
+                max="100000"
+                step="500"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                className="w-full accent-emerald-600 cursor-pointer"
+              />
+              <div className="flex justify-between text-[11px] text-slate-400 mt-1">
+                <span>₹500</span>
+                <span>₹1,00,000</span>
+              </div>
+            </div>
+
+            {/* Rating Filter */}
+            <div>
+              <h3 className="font-bold text-xs uppercase tracking-wider text-slate-400 mb-2.5">
+                Rating
+              </h3>
+              <div className="space-y-1.5">
+                {[4, 3, 2].map((stars) => (
                   <button
-                    key={r}
-                    onClick={() => setMinRating(minRating === r ? 0 : r)}
-                    className={`flex items-center gap-1.5 hover:text-[#c7511f] cursor-pointer w-full text-left py-0.5 ${
-                      minRating === r ? 'font-bold text-[#c7511f]' : 'text-[#0f1111]'
+                    key={stars}
+                    onClick={() => setMinRating(minRating === stars ? 0 : stars)}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-left ${
+                      minRating === stars
+                        ? 'bg-emerald-50 text-emerald-800 font-bold border border-emerald-200'
+                        : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    <div className="flex text-[#de7921]">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star
-                          key={s}
-                          className={`w-3.5 h-3.5 ${s <= r ? 'fill-[#de7921]' : 'text-gray-300'}`}
-                        />
-                      ))}
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex text-amber-400">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-3.5 h-3.5 ${
+                              i < stars
+                                ? 'fill-amber-400 text-amber-400'
+                                : 'text-slate-200'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span>& up</span>
                     </div>
-                    <span>& Up</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Availability */}
-            <div>
-              <h3 className="font-bold text-sm text-[#0f1111] mb-2">Availability</h3>
-              <label className="flex items-center gap-2 text-[#0f1111] cursor-pointer">
+            {/* In Stock Toggle */}
+            <div className="border-t border-slate-100 pt-4">
+              <label className="flex items-center justify-between text-xs text-slate-700 font-medium cursor-pointer">
+                <span>Only in stock</span>
                 <input
                   type="checkbox"
                   checked={inStockOnly}
                   onChange={(e) => setInStockOnly(e.target.checked)}
-                  className="rounded text-[#e77600] focus:ring-[#e77600]"
+                  className="w-4 h-4 rounded text-emerald-600 accent-emerald-600 cursor-pointer"
                 />
-                <span>Include Out of Stock</span>
               </label>
             </div>
           </aside>
 
-          {/* Product Grid (cols 4-12) */}
+          {/* Right Product Grid */}
           <main className="lg:col-span-9">
             {filteredProducts.length === 0 ? (
-              <div className="bg-white p-12 rounded-[4px] border border-[#e7e7e7] text-center">
-                <p className="text-base font-bold text-[#0f1111] mb-2">No matching products found</p>
-                <p className="text-xs text-[#565959] mb-4">Try clearing some filters to see more results.</p>
+              <div className="bg-white rounded-2xl p-12 text-center border border-slate-200/80 shadow-subtle">
+                <p className="text-slate-500 text-sm mb-4">
+                  No products found matching your active filters.
+                </p>
                 <button
                   onClick={() => {
                     setMinRating(0);
-                    setPrimeOnly(false);
                     setInStockOnly(false);
+                    setMaxPrice(100000);
                   }}
-                  className="btn-amazon-primary px-6 py-2 text-xs"
+                  className="btn-sage inline-flex px-5 py-2 text-xs"
                 >
-                  Clear all filters
+                  Clear Filters
                 </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {filteredProducts.map((p) => (
-                  <ProductCard key={p.id} product={p} />
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             )}

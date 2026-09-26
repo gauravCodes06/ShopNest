@@ -3,75 +3,325 @@
 @tailwind utilities;
 
 @layer base {
-  * {
+  *, *::before, *::after {
     box-sizing: border-box;
   }
+
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
+
   body {
-    background-color: #eaeded;
-    color: #0f1111;
-    font-family: "Amazon Ember", Arial, sans-serif;
+    background-color: #F5F6F8;
+    color: #0F172A;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.01em;
   }
-  img {
-    @apply max-w-full;
-  }
-  a {
-    color: inherit;
+
+  img { @apply max-w-full; }
+
+  a { color: inherit; text-decoration: none; }
+
+  ::selection {
+    background-color: #059669;
+    color: #fff;
   }
 }
 
+/* ── Custom Scrollbars ───────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F1F5F9; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
 @layer components {
-  /* Amazon Button Styles */
-  .btn-amazon-primary {
-    @apply bg-[#ffd814] hover:bg-[#f7ca00] text-[#0f1111] font-normal text-sm px-4 py-2 rounded-full border border-[#fcd200] shadow-sm transition-colors active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-center cursor-pointer;
+
+  /* ── Primary CTA: Sage Green ─────────────────────── */
+  .btn-sage {
+    @apply bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800
+           text-white font-semibold text-[13px] tracking-tight
+           px-5 py-2.5 rounded-xl
+           transition-all duration-150 active:scale-[0.98]
+           disabled:opacity-50 disabled:cursor-not-allowed
+           flex items-center justify-center gap-2 cursor-pointer;
+    box-shadow: 0 1px 2px rgba(5,150,105,0.3), 0 1px 0 rgba(5,150,105,0.2);
+  }
+  .btn-sage:hover {
+    box-shadow: 0 4px 12px rgba(5,150,105,0.3);
   }
 
-  .btn-amazon-secondary {
-    @apply bg-[#ffa41c] hover:bg-[#fa8900] text-[#0f1111] font-normal text-sm px-4 py-2 rounded-full border border-[#ff8f00] shadow-sm transition-colors active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-center cursor-pointer;
+  /* ── Secondary: Warm Orange ──────────────────────── */
+  .btn-orange {
+    @apply bg-orange-500 hover:bg-orange-600 active:bg-orange-700
+           text-white font-semibold text-[13px] tracking-tight
+           px-5 py-2.5 rounded-xl
+           transition-all duration-150 active:scale-[0.98]
+           disabled:opacity-50 disabled:cursor-not-allowed
+           flex items-center justify-center gap-2 cursor-pointer;
+    box-shadow: 0 1px 2px rgba(249,115,22,0.25);
+  }
+  .btn-orange:hover {
+    box-shadow: 0 4px 12px rgba(249,115,22,0.3);
   }
 
-  .btn-amazon-white {
-    @apply bg-white hover:bg-[#f7fafa] text-[#0f1111] font-normal text-sm px-4 py-2 rounded-full border border-[#d5d9d9] shadow-sm transition-colors active:scale-[0.99] flex items-center justify-center text-center cursor-pointer;
+  /* ── Outline Button ──────────────────────────────── */
+  .btn-outline {
+    @apply bg-white hover:bg-slate-50 active:bg-slate-100
+           text-slate-700 font-semibold text-[13px] tracking-tight
+           px-5 py-2.5 rounded-xl
+           border border-slate-200 hover:border-slate-300
+           transition-all duration-150 active:scale-[0.98]
+           flex items-center justify-center gap-2 cursor-pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
   }
 
-  /* Compatibility with existing class names */
-  .btn-primary {
-    @apply btn-amazon-primary;
-  }
-  .btn-secondary {
-    @apply btn-amazon-white;
-  }
-  .btn-teal {
-    @apply btn-amazon-primary;
+  /* ── Ghost Button ────────────────────────────────── */
+  .btn-ghost {
+    @apply bg-transparent hover:bg-slate-100 active:bg-slate-200
+           text-slate-600 hover:text-slate-900 font-semibold text-[13px]
+           px-4 py-2 rounded-xl
+           transition-all duration-150
+           flex items-center justify-center gap-2 cursor-pointer;
   }
 
-  /* Amazon White Card */
+  /* Aliases */
+  .btn-primary          { @apply btn-sage; }
+  .btn-secondary        { @apply btn-orange; }
+  .btn-teal             { @apply btn-sage; }
+  .btn-amazon-primary   { @apply btn-sage; }
+  .btn-amazon-secondary { @apply btn-orange; }
+  .btn-amazon-white     { @apply btn-outline; }
+
+  /* ── Cards ───────────────────────────────────────── */
+  .card-nest {
+    @apply bg-white rounded-2xl border border-slate-200/70
+           transition-all duration-200 overflow-hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
   .card {
-    @apply bg-white border border-[#e7e7e7] rounded-none md:rounded-[4px] shadow-sm overflow-hidden;
+    @apply bg-white rounded-2xl border border-slate-200/70
+           transition-all duration-200 overflow-hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   }
 
   .amazon-card {
-    @apply bg-white p-5 rounded-[4px] shadow-sm border border-[#e7e7e7];
+    @apply bg-white rounded-2xl border border-slate-200/70 p-5
+           transition-all duration-200 overflow-hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   }
 
+  /* ── Form Inputs ─────────────────────────────────── */
   .input {
-    @apply w-full bg-white border border-[#888c8c] text-[#0f1111] placeholder-[#565959] rounded-[4px] px-3 py-2 text-sm focus:outline-none focus:border-[#e77600] focus:ring-1 focus:ring-[#e77600] transition-colors shadow-inner;
+    @apply w-full bg-white border border-slate-200 text-slate-800
+           placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm
+           focus:outline-none focus:border-emerald-500
+           focus:ring-2 focus:ring-emerald-500/15
+           transition-all duration-150;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
 
-  .badge {
-    @apply inline-flex items-center gap-1 bg-[#cc0c39] text-white text-xs font-bold px-2 py-0.5 rounded-[2px];
+  /* ── Badges ──────────────────────────────────────── */
+  .badge-discount {
+    @apply inline-flex items-center gap-1 bg-emerald-50 text-emerald-700
+           text-[11px] font-bold px-2 py-0.5 rounded-full border border-emerald-100;
   }
+  .badge-deal {
+    @apply inline-flex items-center gap-1 bg-orange-50 text-orange-700
+           text-[11px] font-bold px-2 py-0.5 rounded-full border border-orange-100;
+  }
+  .badge       { @apply badge-discount; }
+  .badge-prime { @apply inline-flex items-center font-bold text-emerald-600 text-xs tracking-tight; }
 
-  .badge-prime {
-    @apply inline-flex items-center font-bold italic text-[#00a8e1] text-sm tracking-tight;
+  /* ── Section Heading ─────────────────────────────── */
+  .section-heading {
+    @apply text-xl sm:text-2xl font-bold text-slate-900 tracking-tight;
   }
 }
 
-/* Amazon Scrollbar */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+/* ── Premium Micro-Animations ───────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.animate-fade-up  { animation: fadeSlideUp 0.35s ease both; }
+.animate-fade-in  { animation: fadeIn 0.25s ease both; }
+.animate-scale-in { animation: scaleIn 0.2s ease both; }
+
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 1200px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* ── Dynamic Color Themes ───────────────────────────────── */
+
+/* 1. Midnight Navy */
+[data-theme="navy"] {
+  --theme-bg:     #0B1222;
+  --theme-card:   #151F35;
+  --theme-border: #1E2D45;
+  --theme-text:   #F1F5F9;
+  --theme-muted:  #94A3B8;
+  --theme-primary:#059669;
+  --cart-btn-bg: #FBBF24;
+  --cart-btn-hover: #F59E0B;
+  --cart-btn-active: #D97706;
+  --cart-btn-text: #0F172A;
+  --cart-btn-border: #F59E0B;
+  --cart-btn-shadow: 0 1px 4px rgba(251, 191, 36, 0.35);
+  --cart-btn-added-bg: #10B981;
+  --cart-btn-added-text: #FFFFFF;
+}
+[data-theme="navy"] body,
+[data-theme="navy"] main,
+[data-theme="navy"] .min-h-screen { background-color: #0B1222 !important; }
+[data-theme="navy"] header        { background-color: rgba(11,18,34,0.98) !important; border-color: #1E2D45 !important; }
+[data-theme="navy"] .bg-white     { background-color: #151F35 !important; color: #F1F5F9 !important; }
+[data-theme="navy"] .bg-\[\#F5F6F8\],
+[data-theme="navy"] .bg-\[\#F8FAFC\] { background-color: #0B1222 !important; }
+[data-theme="navy"] .bg-slate-50,
+[data-theme="navy"] .bg-slate-100  { background-color: #0F1929 !important; }
+[data-theme="navy"] .text-slate-900,
+[data-theme="navy"] .text-slate-800,
+[data-theme="navy"] .text-slate-700 { color: #F1F5F9 !important; }
+[data-theme="navy"] .text-slate-600,
+[data-theme="navy"] .text-slate-500,
+[data-theme="navy"] .text-slate-400 { color: #94A3B8 !important; }
+[data-theme="navy"] .border-slate-100,
+[data-theme="navy"] .border-slate-200,
+[data-theme="navy"] .border-slate-200\/70,
+[data-theme="navy"] .border-slate-200\/80 { border-color: #1E2D45 !important; }
+[data-theme="navy"] input,
+[data-theme="navy"] select,
+[data-theme="navy"] textarea {
+  background-color: #0F1929 !important;
+  color: #F1F5F9 !important;
+  border-color: #1E2D45 !important;
+}
+[data-theme="navy"] .hero-banner,
+[data-theme="navy"] .from-\[\#F4EFE6\] {
+  background: linear-gradient(135deg, #0B132B 0%, #142342 50%, #0E1A33 100%) !important;
+  border-color: #1E2D45 !important;
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.6) !important;
+}
+[data-theme="navy"] .hero-banner h1,
+[data-theme="navy"] .from-\[\#F4EFE6\] h1 {
+  color: #FFFFFF !important;
+}
+[data-theme="navy"] .hero-banner p,
+[data-theme="navy"] .from-\[\#F4EFE6\] p {
+  color: #CBD5E1 !important;
+}
+[data-theme="navy"] .bg-white\/80,
+[data-theme="navy"] .bg-white\/90,
+[data-theme="navy"] .bg-white\/95 {
+  background-color: #17233D !important;
+  border-color: #243552 !important;
+  color: #F1F5F9 !important;
+}
+
+/* 2. Sage Green (Default) - Golden Yellow Buttons */
+:root,
+:root[data-theme="sage"] {
+  --theme-primary: #059669;
+  --cart-btn-bg: #FFD814;
+  --cart-btn-hover: #F7CA00;
+  --cart-btn-active: #F0B800;
+  --cart-btn-text: #0F172A;
+  --cart-btn-border: #FCD200;
+  --cart-btn-shadow: 0 1px 3px rgba(213, 169, 0, 0.35);
+  --cart-btn-added-bg: #059669;
+  --cart-btn-added-text: #FFFFFF;
+}
+
+/* 3. Warm Orange - Vibrant Orange Buttons */
+[data-theme="orange"] {
+  --theme-primary: #F97316;
+  --cart-btn-bg: #F97316;
+  --cart-btn-hover: #EA580C;
+  --cart-btn-active: #C2410C;
+  --cart-btn-text: #FFFFFF;
+  --cart-btn-border: #EA580C;
+  --cart-btn-shadow: 0 1px 3px rgba(249, 115, 22, 0.35);
+  --cart-btn-added-bg: #059669;
+  --cart-btn-added-text: #FFFFFF;
+}
+[data-theme="orange"] body { background-color: #FFFBF5 !important; }
+[data-theme="orange"] .btn-sage,
+[data-theme="orange"] .bg-emerald-600 { background-color: #F97316 !important; box-shadow: 0 1px 2px rgba(249,115,22,0.3) !important; }
+[data-theme="orange"] .btn-sage:hover { background-color: #EA580C !important; }
+[data-theme="orange"] .text-emerald-600,
+[data-theme="orange"] .text-emerald-700 { color: #EA580C !important; }
+[data-theme="orange"] .border-emerald-500 { border-color: #F97316 !important; }
+[data-theme="orange"] .bg-emerald-50  { background-color: #FFF7ED !important; }
+
+/* 4. Cream White - Luxury Minimalist Black Buttons */
+[data-theme="cream"] {
+  --theme-primary: #292524;
+  --cart-btn-bg: #18181B;
+  --cart-btn-hover: #27272A;
+  --cart-btn-active: #09090B;
+  --cart-btn-text: #FFFFFF;
+  --cart-btn-border: #27272A;
+  --cart-btn-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --cart-btn-added-bg: #10B981;
+  --cart-btn-added-text: #FFFFFF;
+}
+[data-theme="cream"] body { background-color: #FAF8F5 !important; }
+[data-theme="cream"] .btn-sage { background-color: #292524 !important; box-shadow: 0 1px 2px rgba(41,37,36,0.3) !important; }
+[data-theme="cream"] .btn-sage:hover { background-color: #1C1917 !important; }
+[data-theme="cream"] .text-emerald-600,
+[data-theme="cream"] .text-emerald-700 { color: #44403C !important; }
+[data-theme="cream"] .bg-emerald-600 { background-color: #292524 !important; }
+
+/* ── Uniform Theme-Driven "Add to Cart" Button Class ────────── */
+.btn-add-to-cart {
+  background-color: var(--cart-btn-bg) !important;
+  color: var(--cart-btn-text) !important;
+  border: 1px solid var(--cart-btn-border) !important;
+  box-shadow: var(--cart-btn-shadow) !important;
+  transition: all 0.15s ease-in-out !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+
+.btn-add-to-cart:hover:not(:disabled) {
+  background-color: var(--cart-btn-hover) !important;
+  transform: translateY(-1px);
+}
+
+.btn-add-to-cart:active:not(:disabled) {
+  background-color: var(--cart-btn-active) !important;
+  transform: scale(0.98);
+}
+
+.btn-add-to-cart.btn-added {
+  background-color: var(--cart-btn-added-bg) !important;
+  color: var(--cart-btn-added-text) !important;
+  border-color: var(--cart-btn-added-bg) !important;
+}
+
+.btn-add-to-cart:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
